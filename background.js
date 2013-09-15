@@ -1,6 +1,8 @@
 (function () {
-	
+
     var urlIndex = {};
+    var youtubeTabIds = {};
+    var activeYoutubeTabId;
 
     var isYoutubeURL = function (url, tabId) {
         if (url.match(/^(http[s]?:\/\/)?www\.youtube\.com\/watch/) !== null) {
@@ -32,8 +34,21 @@
             }
 
             // urlIndex[url].htmlItem.classList.add('tab-open');
-            urlIndex[url].tabIds.push(tab.id);
 
+            activeYoutubeTabId = tab.id;
+           	for (var tabId in youtubeTabIds) {
+           		var match = tabId.match(/^(\d+)_tabId$/);
+           		if (match !== null) {
+           			var tabId = parseInt(match[1]);
+           			if (tabId !== tab.id) {
+           				// chrome.pageAction.hide(tabId);
+           				chrome.tabs.sendMessage(tabId, "pause", function(){console.log("callback", this, arguments)});
+           			}
+           		}
+           	}
+
+            urlIndex[url].tabIds.push(tab.id);
+            youtubeTabIds[''+tab.id+'_tabId'] = true;
         }
     };
 
