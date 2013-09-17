@@ -1,25 +1,19 @@
+/*jslint indent:4*/
+/*global chrome*/
+
 (function () {
 
     var urlIndex = {};
     var youtubeTabIds = {};
     var activeYoutubeTabId;
 
-    var isYoutubeURL = function (url, tabId) {
-        if (url.match(/^(http[s]?:\/\/)?www\.youtube\.com\/watch/) !== null) {
-            console.log(url, url.match(/&html5=1/));
-            if (url.match(/&html5=1/) !== null) { // &enablejsapi=1 
-                return true;
-            } else {
-                chrome.tabs.update(tabId, {url: url+'&html5=1'});
-            }
-        }
-        return false;
+    var isYoutubeURL = function (url) {
+        return url.match(/^(http[s]?:\/\/)?www\.youtube\.com\/watch/) !== null;
     };
 
     var onNewRequest = function (tab) {
         var url = tab.url;
-        if (isYoutubeURL(url, tab.id)) {
-        	console.log("is yt");
+        if (isYoutubeURL(url)) {
             if (urlIndex[url] === undefined) {
                 urlIndex[url] = {
                     tabIds: []
@@ -29,26 +23,26 @@
                 // var content = document.createTextNode(url);
                 // p.appendChild(content);
                 // namesDiv.appendChild(p);
-                
                 // urlIndex[url].htmlItem = p;
             }
 
             // urlIndex[url].htmlItem.classList.add('tab-open');
 
             activeYoutubeTabId = tab.id;
-           	for (var tabId in youtubeTabIds) {
-           		var match = tabId.match(/^(\d+)_tabId$/);
-           		if (match !== null) {
-           			var tabId = parseInt(match[1]);
-           			if (tabId !== tab.id) {
-           				// chrome.pageAction.hide(tabId);
-           				chrome.tabs.sendMessage(tabId, "pause", function(){console.log("callback", this, arguments)});
-           			}
-           		}
-           	}
+            var tabId;
+            // for (tabId in youtubeTabIds) {
+            Object.keys(youtubeTabIds).forEach(function (tabId) {
+                var match = tabId.match(/^(\d+)_tabId$/);
+                if (match !== null) {
+                    tabId = parseInt(match[1], 10);
+                    if (tabId !== tab.id) {
+                        chrome.tabs.sendMessage(tabId, "pause");
+                    }
+                }
+            });
 
             urlIndex[url].tabIds.push(tab.id);
-            youtubeTabIds[''+tab.id+'_tabId'] = true;
+            youtubeTabIds[tab.id + '_tabId'] = true;
         }
     };
 
@@ -57,14 +51,13 @@
     };
 
     chrome.tabs.onCreated.addListener(function (tab) {
-        console.log('new', tab);
         onNewRequest(tab);
     });
     chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-        console.log(tabId, changeInfo, tab);
         onNewRequest(tab);
     });
     chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
-        console.log('remove', tabId, removeInfo);
+        console.log('Removed', removeInfo);
     });
-})();
+
+}());
