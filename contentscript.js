@@ -6,29 +6,13 @@
 
   var videoElement = document.getElementById("movie_player");
 
-  // This doesn't work. It should. But wont. Bastards.
+  // This doesn't work:
   // videoElement.addEventListenter("onStateChange", function (event) {});
-  // Instead perhaps I'll have to have all currently active youtube tabs
-  //  polling videoElement.getPlayerState() to test state changes. FML.
+  // Instead perhaps I'll have to polling videoElement.getPlayerState() to test state changes.
   // And/or, reimplement my force-HTML5-hack and see if I can access those events.
   //  Note: If I do re-introduce the hack, at least fix back-browsing.
 
   var videoState = null;
-  // var broadcastVideoPlayerState = function () {
-  //   var newState = videoElement.getPlayerState();
-  //   if (newState !== videoState) {
-  //     videoState = newState;
-  //     var message = {
-  //       message: "videoStateChange",
-  //       videoState: newState
-  //     };
-  //     chrome.runtime.sendMessage(message, function (response) {
-  //       console.log("Response", response);
-  //     });
-  //   }
-  // };
-
-  // var poller = window.setInterval(broadcastVideoPlayerState, 250);
 
   chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     if (request.message === "getVideoStarted") {

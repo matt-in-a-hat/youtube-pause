@@ -4,65 +4,9 @@
 // This script is run when the addon is loaded by the browser (probably when the first window opens).
 (function () {
 
-  // var urlIndex = {};
-  // var youtubeTabIds = {};
-  // var activeYoutubeTabId;
-
-  // var isYoutubeURL = function (url) {
-  //   return url.match(/^(http[s]?:\/\/)?www\.youtube\.com\/watch/) !== null;
-  // };
-
-  // var onNewRequest = function (tab) {
-  //   var url = tab.url;
-  //   if (isYoutubeURL(url)) {
-  //     if (urlIndex[url] === undefined) {
-  //       urlIndex[url] = {
-  //         tabIds: []
-  //       };
-  //       // var namesDiv = document.getElementById("video_urls");
-  //       // var p = document.createElement("p");
-  //       // var content = document.createTextNode(url);
-  //       // p.appendChild(content);
-  //       // namesDiv.appendChild(p);
-  //       // urlIndex[url].htmlItem = p;
-  //     }
-
-  //     // urlIndex[url].htmlItem.classList.add("tab-open");
-
-  //     activeYoutubeTabId = tab.id;
-  //     var tabId;
-  //     // for (tabId in youtubeTabIds) {
-  //     Object.keys(youtubeTabIds).forEach(function (tabId) {
-  //       var match = tabId.match(/^(\d+)_tabId$/);
-  //       if (match !== null) {
-  //         tabId = parseInt(match[1], 10);
-  //         if (tabId !== tab.id) {
-  //           chrome.tabs.sendMessage(tabId, "pause");
-  //         }
-  //       }
-  //     });
-
-  //     urlIndex[url].tabIds.push(tab.id);
-  //     youtubeTabIds[tab.id + "_tabId"] = true;
-  //   }
-  // };
-
-  // var onTabClose = function (tabId) {
-
-  // };
-
-  // chrome.tabs.onCreated.addListener(function (tab) {
-  //   onNewRequest(tab);
-  // });
-  // chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-  //   onNewRequest(tab);
-  // });
-  // chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
-  //   console.log("Removed", removeInfo);
-  // });
-
   // TODO: Do I need to unregister tabs somehow other than when failing to communicate to them?
   // TODO: Test when a video is paused due to buffering will it auto-continue after the user changes tab? Will this script catch that?
+  // TODO: investigate event pages instead of background page, and using alarms instead of setInterval
   var youtubeTabIds = {};
 
   var pauseAllRegisteredYoutubeTabs = function (exceptTabId) {
@@ -78,7 +22,6 @@
   };
 
   chrome.runtime.onMessage.addListener(function (request, sender, callback) {
-    console.log("background received message", request, sender, callback);
     var responseObj;
     if (request.message === "registerYoutubeTab") {
       youtubeTabIds[sender.tab.id + "_tabId"] = true;
@@ -96,7 +39,6 @@
         if (youtubeTabIds[tab.id + "_tabId"]) {
           // If they have changed state to start playing, tell the rest to pause
           chrome.tabs.sendMessage(tab.id, {message: "getVideoStarted"}, function (request) {
-            console.log("Response from query", arguments);
             if (!request || !request.message) {
               // Couldn't communicate to tab, assume it's no longer a registered youtube tab
               delete youtubeTabIds[tab.id + "_tabId"];
