@@ -14,32 +14,42 @@
   //  Note: If I do re-introduce the hack, at least fix back-browsing.
 
   var videoState = null;
-  var broadcastVideoPlayerState = function () {
-    var newState = videoElement.getPlayerState();
-    if (newState !== videoState) {
-      videoState = newState;
-      var message = {
-        message: "videoStateChange",
-        videoState: newState
-      };
-      chrome.runtime.sendMessage(message, function (response) {
-        console.log("Response", response);
-      });
-    }
-  };
+  // var broadcastVideoPlayerState = function () {
+  //   var newState = videoElement.getPlayerState();
+  //   if (newState !== videoState) {
+  //     videoState = newState;
+  //     var message = {
+  //       message: "videoStateChange",
+  //       videoState: newState
+  //     };
+  //     chrome.runtime.sendMessage(message, function (response) {
+  //       console.log("Response", response);
+  //     });
+  //   }
+  // };
 
-  var poller = window.setInterval(broadcastVideoPlayerState, 250);
+  // var poller = window.setInterval(broadcastVideoPlayerState, 250);
 
   chrome.runtime.onMessage.addListener(function (request, sender, callback) {
-    console.log("content script received message", request, sender, callback);
-    if (request.message === "pauseVideo") {
+    if (request.message === "getVideoStarted") {
+      // Has this tab's video started playing since last queried?
+      var newState = videoElement.getPlayerState();
+      var message = "videoUnchanged";
+      if (newState !== videoState) {
+        videoState = newState;
+        if (videoState === 1) {
+          message = "videoStarted";
+        }
+      }
+      callback({message: message});
+    } else if (request.message === "pauseVideo") {
+      // A different tab's video is starting
       videoElement.pauseVideo();
+      videoState = videoElement.getPlayerState();
     }
   });
 
-
-  chrome.runtime.sendMessage({message: "registerYoutubeTab"}, function (response) {
-    console.log("Response to register", response);
-  });
+  // Register this tab as a youtube tab
+  chrome.runtime.sendMessage({message: "registerYoutubeTab"});
 
 }());

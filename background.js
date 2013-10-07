@@ -61,30 +61,54 @@
   //   console.log("Removed", removeInfo);
   // });
 
-
+  // TODO: Do I need to unregister tabs somehow other than when failing to communicate to them?
+  // TODO: Test when a video is paused due to buffering will it auto-continue after the user changes tab? Will this script catch that?
   var youtubeTabIds = {};
+
+  var pauseAllRegisteredYoutubeTabs = function (exceptTabId) {
+    Object.keys(youtubeTabIds).forEach(function (tabId) {
+      var match = tabId.match(/^(\d+)_tabId$/);
+      if (match !== null) {
+        tabId = parseInt(match[1], 10);
+        if (tabId !== exceptTabId) {
+          chrome.tabs.sendMessage(tabId, {message: "pauseVideo"});
+        }
+      }
+    });
+  };
 
   chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     console.log("background received message", request, sender, callback);
     var responseObj;
     if (request.message === "registerYoutubeTab") {
       youtubeTabIds[sender.tab.id + "_tabId"] = true;
-    } else if (request.message === "videoStateChange") {
-      if (request.videoState === 1) {
-        Object.keys(youtubeTabIds).forEach(function (tabId) {
-          var match = tabId.match(/^(\d+)_tabId$/);
-          if (match !== null) {
-            tabId = parseInt(match[1], 10);
-            if (tabId !== sender.tab.id) {
-              chrome.tabs.sendMessage(tabId, {message: "pauseVideo"});
-            }
-          }
-        });
-      }
     }
     if (typeof callback === "function") {
       callback(responseObj);
     }
   });
+
+
+  // Poll the active tabs that are registered youtube tabs
+  var checkYoutubeTabVideoStatus = function () {
+    chrome.tabs.query({active: true}, function (tabs) {
+      tabs.forEach(function (tab) {
+        if (youtubeTabIds[tab.id + "_tabId"]) {
+          // If they have changed state to start playing, tell the rest to pause
+          chrome.tabs.sendMessage(tab.id, {message: "getVideoStarted"}, function (request) {
+            console.log("Response from query", arguments);
+            if (!request || !request.message) {
+              // Couldn't communicate to tab, assume it's no longer a registered youtube tab
+              delete youtubeTabIds[tab.id + "_tabId"];
+            } else if (request.message === "videoStarted") {
+              pauseAllRegisteredYoutubeTabs(tab.id);
+            }
+          });
+        }
+      });
+    });
+  };
+
+  var poller = setInterval(checkYoutubeTabVideoStatus, 250);
 
 }());
