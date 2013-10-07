@@ -1,9 +1,9 @@
 
 body {
-    min-width: 357px;
-    overflow-x: hidden;
+  min-width: 357px;
+  overflow-x: hidden;
 }
 
 .tab-open {
-    color: blue;
+  color: blue;
 }
