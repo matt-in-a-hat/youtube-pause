@@ -1,4 +1,6 @@
 
+// This script is included from the html that's displayed when the addon tool bar button is pressed.
+// I think this runs every time that opens as it is re-rendered?
 document.addEventListener('DOMContentLoaded', function () {
 
     // var urlIndex = {};

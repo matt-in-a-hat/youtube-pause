@@ -1,6 +1,7 @@
 /*jslint indent:4*/
 /*global chrome*/
 
+// This script is run when the addon is loaded by the browser (probably when the first window opens).
 (function () {
 
     var urlIndex = {};
