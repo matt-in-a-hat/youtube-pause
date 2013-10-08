@@ -12,6 +12,9 @@ A Chrome extension that pauses all those lost youtube tabs when you open a new o
 
 
 
+
+## Notes for my benefit
+
 ### TODO
 
 
@@ -23,3 +26,21 @@ A Chrome extension that pauses all those lost youtube tabs when you open a new o
   - Indicate which is the currently playing video
   - Have a play button beside each to pause current and play selected
   - Link from list to focus/activate tab
+
+
+### Test cases
+
+Page transitions:
+- video to video
+- video to non-video youtube page
+- non-video youtube page to video
+- video to non-youtube page
+- non-youtube page to video
+- youtube playlist auto-play
+- refresh video page
+- refresh non-video youtube page
+
+Tabs/Windows:
+- multiple tabs
+- multiple windows
+- minimised window
