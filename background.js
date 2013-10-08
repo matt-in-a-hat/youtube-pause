@@ -4,9 +4,6 @@
 // This script is run when the addon is loaded by the browser (probably when the first window opens).
 (function () {
 
-  // TODO: Do I need to unregister tabs somehow other than when failing to communicate to them?
-  // TODO: Test when a video is paused due to buffering will it auto-continue after the user changes tab? Will this script catch that?
-  // TODO: investigate event pages instead of background page, and using alarms instead of setInterval
   var youtubeTabIds = {};
 
   var pauseAllRegisteredYoutubeTabs = function (exceptTabId) {
