@@ -5,9 +5,7 @@
   "description": "Keep track of which tab you are listening to.",
   "version": "0.1",
 
-  "permissions": [
-    "tabs"
-  ],
+  "permissions": [],
   "background": {
     "scripts": ["background.js"]
   },

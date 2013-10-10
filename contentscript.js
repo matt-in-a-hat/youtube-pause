@@ -3,7 +3,18 @@
 
 // This is the script injected into all pages matching youtube as defined in manifest.json
 (function () {
-  var DEBUG_LEVEL = 4;
+  var _YTstates = {
+    'UNSTARTED': -1,
+    'ENDED': 0,
+    'PLAYING': 1,
+    'PAUSED': 2,
+    'BUFFERING': 3,
+    'CUED': 5,
+    isPlayState: function (state) {
+      return state === this.PLAYING || state === this.BUFFERING;
+    }
+  };
+  var DEBUG_LEVEL = 3;
 
   var videoElement = document.getElementById("movie_player");
   if (!videoElement) {
@@ -21,15 +32,15 @@
 
   var checkVideoStateChange = function () {
     // Has this tab's video started playing since last queried?
+    var oldState = _videoState;
+    _videoState = videoElement.getPlayerState();
     if (DEBUG_LEVEL >= 4) {
-      console.log("Checking state");
+      console.log("Checking state: was " + oldState + ", now " + _videoState);
     }
-    var newState = videoElement.getPlayerState();
-    var message = "videoUnchanged";
-    if (newState !== _videoState) {
-      _videoState = newState;
-      if (_videoState === 1 && _poller !== null) {
-        chrome.runtime.sendMessage({message: "videoStarted"});
+    if (!_YTstates.isPlayState(oldState) && _YTstates.isPlayState(_videoState) && _poller !== null) {
+      chrome.runtime.sendMessage({message: "videoStarted"});
+      if (DEBUG_LEVEL >= 2) {
+        console.log("Video started. State was " + oldState + ", now " + _videoState);
       }
     }
   };
@@ -48,6 +59,9 @@
         // A different tab's video is starting
         videoElement.pauseVideo();
         _videoState = videoElement.getPlayerState();
+        if (DEBUG_LEVEL >= 2) {
+          console.log("Video pausing");
+        }
       } else if (request.message === "stopPolling") {
         window.clearInterval(_poller);
         _poller = null;
