@@ -16,9 +16,8 @@
   // And/or, reimplement my force-HTML5-hack and see if I can access those events.
   //  Note: If I do re-introduce the hack, at least fix back-browsing.
 
-  var videoState = null;
-  var keepPolling = true;
-  var poller = null;
+  var _videoState = null;
+  var _poller = null;
 
   var checkVideoStateChange = function () {
     // Has this tab's video started playing since last queried?
@@ -27,17 +26,17 @@
     }
     var newState = videoElement.getPlayerState();
     var message = "videoUnchanged";
-    if (newState !== videoState) {
-      videoState = newState;
-      if (videoState === 1 && poller !== null) {
+    if (newState !== _videoState) {
+      _videoState = newState;
+      if (_videoState === 1 && _poller !== null) {
         chrome.runtime.sendMessage({message: "videoStarted"});
       }
     }
   };
 
   var startPollingVideoState = function () {
-    window.clearInterval(poller);
-    poller = window.setInterval(checkVideoStateChange, 200);
+    window.clearInterval(_poller);
+    _poller = window.setInterval(checkVideoStateChange, 200);
   };
 
   chrome.runtime.onMessage.addListener(function (request, sender, callback) {
@@ -48,10 +47,10 @@
       if (request.message === "pauseVideo") {
         // A different tab's video is starting
         videoElement.pauseVideo();
-        videoState = videoElement.getPlayerState();
+        _videoState = videoElement.getPlayerState();
       } else if (request.message === "stopPolling") {
-        window.clearInterval(poller);
-        poller = null;
+        window.clearInterval(_poller);
+        _poller = null;
         if (DEBUG_LEVEL >= 3) {
           console.log("Stop polling");
         }

@@ -18,7 +18,6 @@ A Chrome extension that pauses all those lost youtube tabs when you open a new o
 ### TODO
 
 
-- Do I need to unregister tabs somehow other than when failing to communicate to them?
 - Test when a video is paused due to buffering will it auto-continue after the user changes tab? Will this script catch that?
 - Investigate event pages instead of background page
 
