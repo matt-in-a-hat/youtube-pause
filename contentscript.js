@@ -3,6 +3,7 @@
 
 // This is the script injected into all pages matching youtube as defined in manifest.json
 (function () {
+  var DEBUG_LEVEL = 4;
 
   var videoElement = document.getElementById("movie_player");
   if (!videoElement) {
@@ -11,7 +12,7 @@
 
   // This doesn't work:
   // videoElement.addEventListenter("onStateChange", function (event) {});
-  // Instead perhaps I'll have to polling videoElement.getPlayerState() to test state changes.
+  // Instead I'll have to poll videoElement.getPlayerState() to test state changes.
   // And/or, reimplement my force-HTML5-hack and see if I can access those events.
   //  Note: If I do re-introduce the hack, at least fix back-browsing.
 
@@ -21,6 +22,9 @@
 
   var checkVideoStateChange = function () {
     // Has this tab's video started playing since last queried?
+    if (DEBUG_LEVEL >= 4) {
+      console.log("Checking state");
+    }
     var newState = videoElement.getPlayerState();
     var message = "videoUnchanged";
     if (newState !== videoState) {
@@ -32,6 +36,7 @@
   };
 
   var startPollingVideoState = function () {
+    window.clearInterval(poller);
     poller = window.setInterval(checkVideoStateChange, 200);
   };
 
@@ -46,6 +51,10 @@
         videoState = videoElement.getPlayerState();
       } else if (request.message === "stopPolling") {
         window.clearInterval(poller);
+        poller = null;
+        if (DEBUG_LEVEL >= 3) {
+          console.log("Stop polling");
+        }
       } else if (request.message === "startPolling") {
         startPollingVideoState();
       }

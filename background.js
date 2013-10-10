@@ -6,6 +6,8 @@
 
   var youtubeTabIds = {};
 
+  // I expect all youtube tabs I message to respond with an object that has a message,
+  //  if this isn't so then I assume it's no longer running my youtube script.
   var sendMessage = function (tabId, request) {
     chrome.tabs.sendMessage(tabId, request, function (request) {
       if (typeof request !== "object" || request.message === undefined) {
@@ -15,6 +17,7 @@
     });
   };
 
+  // Sends the message to all youtube tabs we know about. Optionally except 1.
   var messageAllRegisteredYoutubeTabs = function (message, exceptTabId) {
     Object.keys(youtubeTabIds).forEach(function (tabId) {
       var match = tabId.match(/^(\d+)_tabId$/);
@@ -42,13 +45,31 @@
     }
   });
 
-  // Tell youtube tabs whether they're active so they don't always have to poll
-  // TODO also do this on windows.onFocusChange
-  chrome.tabs.onActivated.addListener(function (activeInfo) {
-    if (youtubeTabIds[activeInfo.tabId + "_tabId"]) {
-      sendMessage(activeInfo.tabId, {message: "startPolling"});
+  // Stop polling all registered youtube tabs except the current 1 (if it's even a youtube tab)
+  var stopPollingAllExcept = function (exceptTabId) {
+    if (youtubeTabIds[exceptTabId + "_tabId"]) {
+      sendMessage(exceptTabId, {message: "startPolling"});
     }
-    messageAllRegisteredYoutubeTabs("stopPolling", activeInfo.tabId);
+    messageAllRegisteredYoutubeTabs("stopPolling", exceptTabId);
+  };
+
+  // Tell youtube tabs whether they're active so they don't always have to poll.
+  //  When a tab changes,
+  chrome.tabs.onActivated.addListener(function (activeInfo) {
+    stopPollingAllExcept(activeInfo.tabId);
+  });
+  //  and when the focussed window changes
+  chrome.windows.onFocusChanged.addListener(function (windowId) {
+    if (windowId === chrome.windows.WINDOW_ID_NONE) {
+      // All chrome windows lost focus
+      messageAllRegisteredYoutubeTabs("stopPolling");
+    } else {
+      chrome.tabs.query({ active: true, windowId: windowId }, function (tabs) {
+        if (tabs.length > 0) {
+          stopPollingAllExcept(tabs[0].id);
+        }
+      });
+    }
   });
 
 }());
