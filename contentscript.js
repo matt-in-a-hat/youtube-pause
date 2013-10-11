@@ -14,7 +14,7 @@
       return state === this.PLAYING || state === this.BUFFERING;
     }
   };
-  var DEBUG_LEVEL = 3;
+  var DEBUG_LEVEL = 0;
 
   var videoElement = document.getElementById("movie_player");
   if (!videoElement) {
