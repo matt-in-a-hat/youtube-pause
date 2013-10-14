@@ -14,7 +14,6 @@
       return state === this.PLAYING || state === this.BUFFERING;
     }
   };
-  var DEBUG_LEVEL = 0;
 
   var videoElement = document.getElementById("movie_player");
   if (!videoElement) {
@@ -34,14 +33,8 @@
     // Has this tab's video started playing since last queried?
     var oldState = _videoState;
     _videoState = videoElement.getPlayerState();
-    if (DEBUG_LEVEL >= 4) {
-      console.log("Checking state: was " + oldState + ", now " + _videoState);
-    }
     if (!_YTstates.isPlayState(oldState) && _YTstates.isPlayState(_videoState) && _poller !== null) {
-      chrome.runtime.sendMessage({message: "videoStarted"});
-      if (DEBUG_LEVEL >= 2) {
-        console.log("Video started. State was " + oldState + ", now " + _videoState);
-      }
+      chrome.runtime.sendMessage({message: "youtubeExtensionVideoStarted"});
     }
   };
 
@@ -51,35 +44,20 @@
   };
 
   chrome.runtime.onMessage.addListener(function (request, sender, callback) {
-    var responseObj = {
-      message: 'success'
-    };
     if (typeof request === "object" && request.message !== undefined) {
-      if (request.message === "pauseVideo") {
+      if (request.message === "youtubeExtensionPauseVideo") {
         // A different tab's video is starting
         videoElement.pauseVideo();
         _videoState = videoElement.getPlayerState();
-        if (DEBUG_LEVEL >= 2) {
-          console.log("Video pausing");
-        }
-      } else if (request.message === "stopPolling") {
+      } else if (request.message === "youtubeExtensionStopPolling") {
         window.clearInterval(_poller);
         _poller = null;
-        if (DEBUG_LEVEL >= 3) {
-          console.log("Stop polling");
-        }
-      } else if (request.message === "startPolling") {
+      } else if (request.message === "youtubeExtensionStartPolling") {
         startPollingVideoState();
       }
     }
-    if (typeof callback === "function") {
-      callback(responseObj);
-    }
   });
 
-  // Register this tab as a youtube tab
-  chrome.runtime.sendMessage({message: "registerYoutubeTab"}, function () {
-    startPollingVideoState();
-  });
+  startPollingVideoState();
 
 }());
