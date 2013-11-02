@@ -20,7 +20,11 @@ A Chrome extension that pauses all those lost youtube tabs when you open a new o
 
 - Investigate event pages instead of background page? Will need to store registered tab ids though. And I doubt this extension is likely to be run on very low memory devices.
 
-- Add browser action popup which lists the open videos
+- If a video is playing and a new one is loaded, pause the new one and continue playing one. Then pause playing one if the new one is unpaused.
+
+- Add browser action popup
+  - Have an option to swap which video is paused when a new one is started (playing one or new one)
+  - List the open videos
   - Indicate which is the currently playing video
   - Have a play button beside each to pause current and play selected
   - Link from list to focus/activate tab
